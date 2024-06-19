@@ -1,0 +1,9 @@
+{
+  "name": "vales_backend",
+  "version": "1.0.0",
+  "description": "Backend for the vales app",
+  "main": "index.js",
+  "repository": "https://github.com/luislealdev/vales_backend.git",
+  "author": "Luis Leal <luisrrleal@gmail.com>",
+  "license": "MIT"
+}
