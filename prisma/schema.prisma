@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// USER
+model User {
+  id        String  @id @default(uuid())
+  email     String  @unique
+  password  String
+  role      Role    @default(USER)
+  is_active Boolean @default(true)
+
+  Coupon      Coupon[]
+  LearnPost   LearnPost[]
+  NewsPost    NewsPost[]
+  PostComment PostComment[]
+  PostLike    PostLike[]
+
+  address_id String
+  address    Address @relation(fields: [address_id], references: [id])
+
+  user_info_id String
+  user_info    UserInfo @relation(fields: [user_info_id], references: [id])
+}
+
+model UserInfo {
+  id              String   @id @default(uuid())
+  name            String
+  second_name     String
+  first_lastName  String
+  second_lastName String
+  phone           String
+  birthdate       DateTime
+  score           Int
+  rfc             String
+  curp            String
+  gender          Gender
+
+  address_id String
+  address    Address @relation(fields: [address_id], references: [id])
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+}
+
+model Address {
+  id           String     @id @default(uuid())
+  street       String
+  number       String
+  neighborhood String
+  city         String
+  state        String
+  zip_code     String
+  user_id      String
+  user         User       @relation(fields: [user_id], references: [id])
+  userInfo     UserInfo[]
+}
+
+// COUPON
+model Coupon {
+  id String @id @default(uuid())
+
+  code   String @unique
+  amount Float
+
+  coupon_type_id String
+  coupon_type    CouponType @relation(fields: [coupon_type_id], references: [id])
+
+  distributor_id String
+  distributor    User   @relation(fields: [distributor_id], references: [id])
+
+  client_id String
+  client    User   @relation(fields: [client_id], references: [id])
+}
+
+model CouponType {
+  id     String   @id @default(uuid())
+  type   String
+  Coupon Coupon[]
+}
+
+model LearnPost {
+  id String @id @default(uuid())
+
+  title       String
+  description String
+  video_url   String
+  created_at  DateTime
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+}
+
+// News
+model NewsPost {
+  id String @id @default(uuid())
+
+  title      String
+  content    String
+  image      String
+  created_at DateTime
+  likes      Int
+
+  user_id     String
+  user        User          @relation(fields: [user_id], references: [id])
+  PostComment PostComment[]
+  PostLike    PostLike[]
+}
+
+model PostComment {
+  id String @id @default(uuid())
+
+  content    String
+  created_at DateTime
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+
+  news_post_id String
+  news_post    NewsPost @relation(fields: [news_post_id], references: [id])
+}
+
+model PostLike {
+  id String @id @default(uuid())
+
+  liked_at DateTime
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+
+  news_post_id String
+  news_post    NewsPost @relation(fields: [news_post_id], references: [id])
+}
+
+enum Role {
+  USER
+  DISTRIBUTOR
+  EDITOR
+  ADMIN
+}
+
+enum Gender {
+  M
+  F
+  O
+}
