@@ -1,0 +1,16 @@
+# This file is used to create a docker container for the postgres database
+# THIS IS NOT A PRODUCTION DB, GOOD LUCK TRYING TO HACK IT
+version: "3.8"
+
+services:
+  postgres-db:
+    image: postgres:15.3
+    restart: always
+    environment:
+      POSTGRES_USER: "root"
+      POSTGRES_DB: "vales_db"
+      POSTGRES_PASSWORD: "root"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

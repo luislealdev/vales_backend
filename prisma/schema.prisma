@@ -1,10 +1,10 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
 }
 
 // USER
@@ -15,17 +15,15 @@ model User {
   role      Role    @default(USER)
   is_active Boolean @default(true)
 
-  Coupon      Coupon[]
-  LearnPost   LearnPost[]
-  NewsPost    NewsPost[]
-  PostComment PostComment[]
-  PostLike    PostLike[]
+  distributedCoupons Coupon[]      @relation("DistributorCoupons")
+  receivedCoupons    Coupon[]      @relation("ClientCoupons")
+  learnPosts         LearnPost[]
+  newsPosts          NewsPost[]
+  postComments       PostComment[]
+  postLikes          PostLike[]
 
-  address_id String
-  address    Address @relation(fields: [address_id], references: [id])
-
-  user_info_id String
-  user_info    UserInfo @relation(fields: [user_info_id], references: [id])
+  userInfo UserInfo?
+  address  Address?
 }
 
 model UserInfo {
@@ -41,24 +39,24 @@ model UserInfo {
   curp            String
   gender          Gender
 
-  address_id String
-  address    Address @relation(fields: [address_id], references: [id])
-
-  user_id String
-  user    User   @relation(fields: [user_id], references: [id])
+  user_id   String   @unique
+  user      User     @relation(fields: [user_id], references: [id])
+  Address   Address? @relation(fields: [addressId], references: [id])
+  addressId String?
 }
 
 model Address {
-  id           String     @id @default(uuid())
+  id           String @id @default(uuid())
   street       String
   number       String
   neighborhood String
   city         String
   state        String
   zip_code     String
-  user_id      String
-  user         User       @relation(fields: [user_id], references: [id])
-  userInfo     UserInfo[]
+
+  user_id   String     @unique
+  user      User       @relation(fields: [user_id], references: [id])
+  userInfos UserInfo[]
 }
 
 // COUPON
@@ -71,17 +69,17 @@ model Coupon {
   coupon_type_id String
   coupon_type    CouponType @relation(fields: [coupon_type_id], references: [id])
 
-  distributor_id String
-  distributor    User   @relation(fields: [distributor_id], references: [id])
+  distributorId String
+  distributor   User   @relation("DistributorCoupons", fields: [distributorId], references: [id])
 
-  client_id String
-  client    User   @relation(fields: [client_id], references: [id])
+  clientId String
+  client   User   @relation("ClientCoupons", fields: [clientId], references: [id])
 }
 
 model CouponType {
-  id     String   @id @default(uuid())
-  type   String
-  Coupon Coupon[]
+  id      String   @id @default(uuid())
+  type    String
+  coupons Coupon[]
 }
 
 model LearnPost {
@@ -106,10 +104,10 @@ model NewsPost {
   created_at DateTime
   likes      Int
 
-  user_id     String
-  user        User          @relation(fields: [user_id], references: [id])
-  PostComment PostComment[]
-  PostLike    PostLike[]
+  user_id      String
+  user         User          @relation(fields: [user_id], references: [id])
+  postComments PostComment[]
+  postLikes    PostLike[]
 }
 
 model PostComment {
@@ -122,7 +120,7 @@ model PostComment {
   user    User   @relation(fields: [user_id], references: [id])
 
   news_post_id String
-  news_post    NewsPost @relation(fields: [news_post_id], references: [id])
+  newsPost     NewsPost @relation(fields: [news_post_id], references: [id])
 }
 
 model PostLike {
@@ -134,7 +132,7 @@ model PostLike {
   user    User   @relation(fields: [user_id], references: [id])
 
   news_post_id String
-  news_post    NewsPost @relation(fields: [news_post_id], references: [id])
+  newsPost     NewsPost @relation(fields: [news_post_id], references: [id])
 }
 
 enum Role {
