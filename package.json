@@ -12,6 +12,7 @@
   "author": "Luis Leal <luisrrleal@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@prisma/client": "5.15.1",
     "@types/node": "^20.12.12",
     "cors": "^2.8.5",
     "express": "^4.19.2",

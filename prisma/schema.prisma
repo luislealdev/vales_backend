@@ -12,7 +12,7 @@ model User {
   id        String  @id @default(uuid())
   email     String  @unique
   password  String
-  role      Role    @default(USER)
+  role      Role    @default(CLIENT)
   is_active Boolean @default(true)
 
   distributedCoupons Coupon[]      @relation("DistributorCoupons")
@@ -41,7 +41,7 @@ model UserInfo {
 
   user_id   String   @unique
   user      User     @relation(fields: [user_id], references: [id])
-  Address   Address? @relation(fields: [addressId], references: [id])
+  address   Address? @relation(fields: [addressId], references: [id])
   addressId String?
 }
 
@@ -136,7 +136,7 @@ model PostLike {
 }
 
 enum Role {
-  USER
+  CLIENT
   DISTRIBUTOR
   EDITOR
   ADMIN
