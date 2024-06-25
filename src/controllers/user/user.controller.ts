@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../../lib/prisma';
+import bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { generateRandomPassword } from '../../utils/generateRandomPassword';
 
@@ -19,6 +20,8 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         const pass = generateRandomPassword();
+        // TODO: IMPLEMENT HASHING PASSWORD
+        // const hashedPass = bcrypt.hashSync(pass, 10);
 
         // Transacción para crear usuario y dirección
         const result = await prisma.$transaction(async (prisma) => {
@@ -57,6 +60,8 @@ export const createUser = async (req: Request, res: Response) => {
                     }
                 }
             });
+
+            // TODO: SEND EMAIL WITH PASSWORD
             return user;
         });
 
@@ -73,19 +78,61 @@ export const createUser = async (req: Request, res: Response) => {
     }
 };
 
-// export const disableUser = async (req: Request, res: Response) => {
-//     const { email } = req.params;
+export const deleteUser = async (req: Request, res: Response) => {
+    const { user_id } = req.params;
 
-//     try {
-//         const user = await prisma.user.update({
-//             where: { email },
-//             data: {
-//                 is_active: false
-//             }
-//         });
+    // Validación de entrada
+    if (!user_id) {
+        return res.status(400).json({ ok: false, message: 'El ID del usuario es obligatorio' });
+    }
 
-//         return res.json({ ok: true, user });
-//     } catch (error) {
-//         return res.status(500).json({ ok: false, message: 'Error desconocido', error: error.message });
-//     }
-// }
+    try {
+        // Verificar si el usuario tiene cupones
+        const userWithCoupons = await prisma.coupon.findFirst({
+            where: {
+                OR: [
+                    { distributorId: user_id },
+                    { clientId: user_id }
+                ]
+            }
+        });
+
+        if (userWithCoupons) {
+            // Si el usuario tiene cupones, cambiar is_active a false
+            const updatedUser = await prisma.user.update({
+                where: { id: user_id },
+                data: { is_active: false }
+            });
+
+            return res.status(200).json({ ok: true, message: 'El usuario tiene cupones, se ha desactivado en lugar de eliminarse', user: updatedUser });
+        } else {
+            // Iniciar transacción para eliminar todo lo relacionado con el usuario
+            await prisma.$transaction(async (prisma) => {
+                // Eliminar dirección del usuario
+                await prisma.address.deleteMany({
+                    where: {
+                        user: {
+                            id: user_id
+                        }
+                    }
+                });
+
+                // Eliminar información del usuario
+                await prisma.userInfo.deleteMany({
+                    where: { user_id }
+                });
+
+                // Eliminar el usuario
+                await prisma.user.delete({
+                    where: { id: user_id }
+                });
+            });
+
+            return res.status(200).json({ ok: true, message: 'Usuario y toda la información relacionada han sido eliminados' });
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ ok: false, message: 'Error desconocido, revise la consola del sistema' });
+    }
+};
