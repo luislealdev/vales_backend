@@ -42,7 +42,7 @@ model UserInfo {
   second_last_name String
   phone            String
   birthdate        DateTime
-  score            Int
+  score            Int      @default(0)
   rfc              String
   curp             String
   gender           Gender

@@ -1,7 +1,9 @@
+import { parse, format } from 'date-fns';
 import { Request, Response } from 'express';
 import UserService from '../../services/user.service';
-import { Gender, Role } from '@prisma/client';
+import { Gender } from '@prisma/client';
 import { validateEmail } from '../../utils/validateEmail';
+import { generateRandomPassword } from '../../utils/generateRandomPassword';
 
 class UserController {
     private userService: UserService;
@@ -10,9 +12,31 @@ class UserController {
         this.userService = userService;
     }
 
-    public async createUser(req: Request, res: Response): Promise<Response> {
+
+    public createUser = async (req: Request, res: Response): Promise<Response> => {
         // Validate required fields for user creation
-        const requiredUserFields = ['email', 'password', 'role'];
+        const requiredUserFields = [
+            'email',
+            'name',
+            'second_name',
+            'phone',
+            'birthdate',
+            'rfc',
+            'curp',
+            'gender',
+            'first_last_name',
+            'second_last_name',
+            'street',
+            'number',
+            'neighborhood',
+            'city',
+            'state',
+            'zip_code'
+        ];
+
+        const RFC_REGEX = /^[A-ZÑ&]{3,4}\d{6}(?:\d{2})?([A-Z\d]{3})?$/;
+        const CURP_REGEX = /^[A-Z]{4}\d{6}[A-Z]{6}\d{2}$/;
+
         for (const field of requiredUserFields) {
             if (!req.body[field]) {
                 return res.status(400).json({ ok: false, message: `Missing required field: ${field}` });
@@ -24,32 +48,65 @@ class UserController {
             return res.status(400).json({ ok: false, message: 'Invalid email format' });
         }
 
-        // Validate password strength (optional)
-        // You can use a password validation library or implement your own rules
+        // Validate RFC
+        if (!RFC_REGEX.test(req.body.rfc)) return res.status(400).json({
+            ok: false,
+            message: 'RFC not valid'
+        });
+        // Validate CURP
+        if (!CURP_REGEX.test(req.body.curp)) return res.status(400).json({
+            ok: false,
+            message: 'CURP not valid'
+        });
 
-        // Validate role
-        if (!Object.values(Role).includes(req.body.role)) {
-            return res.status(400).json({ ok: false, message: 'Invalid role' });
+        if (req.body.phone.length != 10) return res.status(400).json({ ok: false, message: 'Invalid phone number' });
+
+        const birthdateString = req.body.birthdate;
+        let birthdate: Date;
+
+        if (birthdateString) {
+            try {
+                const parsedDate = parse(birthdateString, 'dd-MM-yyyy', new Date());
+                birthdate = new Date(format(parsedDate, 'yyyy-MM-dd'));
+            } catch (error) {
+                return res.status(400).json({ ok: false, message: 'Invalid birthdate format' });
+            }
         }
 
-        // Extract user_info data from request body
+        // TODO: GENERATE PASSWORD
+        const password = generateRandomPassword();
+
+        // Extract user_info data from request body 
         const userInfoData = {
             name: req.body.name || '',
-            secondName: req.body.secondName || '',
-            firstNameLastName: req.body.firstNameLastName || '',
-            secondLastName: req.body.secondLastName || '',
+            second_name: req.body.second_name || '',
+            first_last_name: req.body.first_last_name || '',
+            second_last_name: req.body.second_last_name || '',
             phone: req.body.phone || '',
-            birthdate: req.body.birthdate || null,
+            birthdate: birthdate!,
             score: req.body.score || 0,
             rfc: req.body.rfc || '',
             curp: req.body.curp || '',
             gender: req.body.gender || Gender.MALE,
         };
 
+        const userAddress = {
+            street: req.body.street || '',
+            number: req.body.number || '',
+            neighborhood: req.body.neighborhood || '',
+            city: req.body.city || '',
+            state: req.body.state || '',
+            zip_code: req.body.zip_code
+        }
+
         // Create the user object with user_info
         const userObject = {
-            ...req.body, // Include other user fields
+            created_by: req.user?.id,
+            updated_at: new Date(),
+            email: req.body.email,
+            password,
             user_info: userInfoData, // Add user_info data
+            address: userAddress,
         };
 
         // Attempt to create the user using the userService
