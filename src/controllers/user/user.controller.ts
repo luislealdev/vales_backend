@@ -4,6 +4,7 @@ import UserService from '../../services/user.service';
 import { Gender } from '@prisma/client';
 import { validateEmail } from '../../utils/validateEmail';
 import { generateRandomPassword } from '../../utils/generateRandomPassword';
+import bcrypt from 'bcrypt';
 
 class UserController {
     private userService: UserService;
@@ -78,8 +79,11 @@ class UserController {
             }
         }
 
-        // TODO: GENERATE PASSWORD
         const password = generateRandomPassword();
+        // TODO: SEND PASSWORD TO EMAIL
+        // Hash the password
+        const hashedPassword = bcrypt.hashSync(password, 10);
+
 
         // Extract user_info data from request body 
         const userInfoData = {
@@ -109,7 +113,7 @@ class UserController {
             created_by: req.user?.id,
             updated_at: new Date(),
             email: req.body.email,
-            password,
+            password: hashedPassword,
             user_info: userInfoData, // Add user_info data
             address: userAddress,
         };

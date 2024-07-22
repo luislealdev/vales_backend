@@ -16,4 +16,5 @@ router.get('/coupons', authorizeCoupon(['ADMIN']), couponController.getAllCoupon
 router.get('/coupons/distributor', authorizeCoupon(['DISTRIBUTOR']), couponController.getCouponsByDistributorId);
 router.get('/coupons/client', authorizeCoupon(['CLIENT']), couponController.getCouponsByClientId);
 
+
 export default router;
