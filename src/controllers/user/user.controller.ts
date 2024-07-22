@@ -48,6 +48,11 @@ class UserController {
             return res.status(400).json({ ok: false, message: 'Invalid email format' });
         }
 
+        const userExists = await this.userService.getUserByEmail(req.body.email);
+        if (userExists) {
+            return res.status(400).json({ ok: false, message: 'User already exists' });
+        }
+
         // Validate RFC
         if (!RFC_REGEX.test(req.body.rfc)) return res.status(400).json({
             ok: false,

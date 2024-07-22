@@ -80,6 +80,14 @@ class UserService {
             }
         });
     }
+
+    public async getUserByEmail(email: string): Promise<User | null> {
+        return prisma.user.findUnique({
+            where: {
+                email
+            }
+        });
+    }
 }
 
 export default UserService;
