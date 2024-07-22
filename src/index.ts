@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import userRoutes from './routes/user.routes';
 import authRoutes from './routes/auth.routes';
+import authenticate from './middlewares/authorize';
 
 const app = express();
 
@@ -14,10 +15,12 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 
-app.use(userRoutes);
 app.use(authRoutes);
 
+app.use(authenticate);
+
+app.use(userRoutes);
 
 app.listen(port, () => {
     console.log(`Servidor corriendo en puerto ${port}`);
-});
+}); 

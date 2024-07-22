@@ -1,138 +1,105 @@
 import { Request, Response } from 'express';
-import prisma from '../../lib/prisma';
-import bcrypt from 'bcrypt';
-import { Prisma } from '@prisma/client';
-import { generateRandomPassword } from '../../utils/generateRandomPassword';
+import UserService from '../../services/user.service';
+import { Gender, Role } from '@prisma/client';
+import { validateEmail } from '../../utils/validateEmail';
 
-export const createUser = async (req: Request, res: Response) => {
-    const { email, name, second_name, first_lastName, second_lastName, phone, birthdate, score, rfc, curp, gender, street, number, neighborhood, city, state, zip_code } = req.body;
+class UserController {
+    private userService: UserService;
 
-    // Validación de entrada
-    if (!email || !name || !first_lastName || !second_lastName || !phone || !birthdate || !rfc || !curp || !gender || !street || !number || !neighborhood || !city || !state || !zip_code) {
-        return res.status(400).json({ ok: false, message: 'Todos los campos son obligatorios' });
+    constructor(userService: UserService) {
+        this.userService = userService;
     }
 
-    try {
-        // Verificación de duplicados
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ ok: false, message: 'El correo electrónico ya está registrado' });
-        }
-
-        const pass = generateRandomPassword();
-        // TODO: IMPLEMENT HASHING PASSWORD
-        // const hashedPass = bcrypt.hashSync(pass, 10);
-
-        // Transacción para crear usuario y dirección
-        const result = await prisma.$transaction(async (prisma) => {
-            const user = await prisma.user.create({
-                data: {
-                    password: pass,
-                    email: email,
-                    role: 'CLIENT',
-                    userInfo: {
-                        create: {
-                            name,
-                            second_name,
-                            first_lastName,
-                            second_lastName,
-                            phone,
-                            birthdate: new Date(birthdate),
-                            score,
-                            rfc,
-                            curp,
-                            gender,
-                            address: {
-                                create: {
-                                    street,
-                                    number,
-                                    neighborhood,
-                                    city,
-                                    state,
-                                    zip_code,
-                                    // Add the user relationship here
-                                    user: {
-                                        connect: { email: email } // Connect to the user using email
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // TODO: SEND EMAIL WITH PASSWORD
-            return user;
-        });
-
-
-        return res.status(201).json({ ok: true, user: result });
-
-    } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            // Manejo de errores conocidos de Prisma
-            return res.status(500).json({ ok: false, message: 'Error en el servidor o datos incorrectos', error: error.message });
-        }
-        console.log(error);
-        return res.status(500).json({ ok: false, message: 'Error desconocido, revise la consola del sistema' });
-    }
-};
-
-export const deleteUser = async (req: Request, res: Response) => {
-    const { user_id } = req.params;
-
-    // Validación de entrada
-    if (!user_id) {
-        return res.status(400).json({ ok: false, message: 'El ID del usuario es obligatorio' });
-    }
-
-    try {
-        // Verificar si el usuario tiene cupones
-        const userWithCoupons = await prisma.coupon.findFirst({
-            where: {
-                OR: [
-                    { distributorId: user_id },
-                    { clientId: user_id }
-                ]
+    public async createUser(req: Request, res: Response): Promise<Response> {
+        // Validate required fields for user creation
+        const requiredUserFields = ['email', 'password', 'role'];
+        for (const field of requiredUserFields) {
+            if (!req.body[field]) {
+                return res.status(400).json({ ok: false, message: `Missing required field: ${field}` });
             }
-        });
-
-        if (userWithCoupons) {
-            // Si el usuario tiene cupones, cambiar is_active a false
-            const updatedUser = await prisma.user.update({
-                where: { id: user_id },
-                data: { is_active: false }
-            });
-
-            return res.status(200).json({ ok: true, message: 'El usuario tiene cupones, se ha desactivado en lugar de eliminarse', user: updatedUser });
-        } else {
-            // Iniciar transacción para eliminar todo lo relacionado con el usuario
-            await prisma.$transaction(async (prisma) => {
-                // Eliminar dirección del usuario
-                await prisma.address.deleteMany({
-                    where: {
-                        user: {
-                            id: user_id
-                        }
-                    }
-                });
-
-                // Eliminar información del usuario
-                await prisma.userInfo.deleteMany({
-                    where: { user_id }
-                });
-
-                // Eliminar el usuario
-                await prisma.user.delete({
-                    where: { id: user_id }
-                });
-            });
-
-            return res.status(200).json({ ok: true, message: 'Usuario y toda la información relacionada han sido eliminados' });
         }
 
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ ok: false, message: 'Error desconocido, revise la consola del sistema' });
+        // Validate email format
+        if (!validateEmail(req.body.email)) {
+            return res.status(400).json({ ok: false, message: 'Invalid email format' });
+        }
+
+        // Validate password strength (optional)
+        // You can use a password validation library or implement your own rules
+
+        // Validate role
+        if (!Object.values(Role).includes(req.body.role)) {
+            return res.status(400).json({ ok: false, message: 'Invalid role' });
+        }
+
+        // Extract user_info data from request body
+        const userInfoData = {
+            name: req.body.name || '',
+            secondName: req.body.secondName || '',
+            firstNameLastName: req.body.firstNameLastName || '',
+            secondLastName: req.body.secondLastName || '',
+            phone: req.body.phone || '',
+            birthdate: req.body.birthdate || null,
+            score: req.body.score || 0,
+            rfc: req.body.rfc || '',
+            curp: req.body.curp || '',
+            gender: req.body.gender || Gender.MALE,
+        };
+
+        // Create the user object with user_info
+        const userObject = {
+            ...req.body, // Include other user fields
+            user_info: userInfoData, // Add user_info data
+        };
+
+        // Attempt to create the user using the userService
+        try {
+            const user = await this.userService.createUser(userObject);
+            return res.json({ ok: true, user });
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error while creating user', error });
+        }
     }
-};
+
+
+    public getUserById = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const user = await this.userService.getUserById(req.params.id);
+            if (!user) {
+                return res.status(404).json({ ok: false, message: 'User not found' });
+            }
+            return res.json({ ok: true, user });
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error fetching user', error });
+        }
+    }
+
+    public updateUser = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const user = await this.userService.updateUser(req.params.id, req.body);
+            return res.json({ ok: true, user });
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error updating user', error });
+        }
+    }
+
+    public deleteUser = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            await this.userService.deleteUser(req.params.id);
+            return res.json({ ok: true, message: 'User deleted' });
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error deleting user', error });
+        }
+    }
+
+    public getDistributors = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const distributors = await this.userService.getDistributors();
+            return res.json({ ok: true, distributors })
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error getting distributors', error });
+        }
+    }
+}
+
+export default UserController;

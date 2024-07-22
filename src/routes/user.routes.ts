@@ -1,13 +1,16 @@
-import { Router } from "express";
-import { createUser } from "../controllers/user/user.controller";
+import { Router } from 'express';
+import UserService from '../services/user.service';
+import UserController from '../controllers/user/user.controller';
+import authorizeUser from '../middlewares/authorizeUser';
 
 const router = Router();
+const userService = new UserService();
+const userController = new UserController(userService);
 
-router.post('/users', createUser);
-// router.get('/users', getUsers)
-// router.get('/users/:id', getUser)
-// router.put('/users/:id', updateUser)
-// router.delete('/users/:id', deleteUser)
-
+router.get('/users/distributors', authorizeUser(['ADMIN']), userController.getDistributors);
+router.post('/users', authorizeUser(['ADMIN', 'DISTRIBUTOR']), userController.createUser);
+router.get('/users/:id', userController.getUserById);
+router.put('/users/:id', authorizeUser(['ADMIN', 'WRITER', 'DISTRIBUTOR']), userController.updateUser);
+router.delete('/users/:id', authorizeUser(['ADMIN', 'WRITER', 'DISTRIBUTOR']), userController.deleteUser);
 
 export default router;

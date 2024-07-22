@@ -15,34 +15,56 @@ model User {
   role      Role    @default(CLIENT)
   is_active Boolean @default(true)
 
-  distributedCoupons Coupon[]      @relation("DistributorCoupons")
-  receivedCoupons    Coupon[]      @relation("ClientCoupons")
-  learnPosts         LearnPost[]
-  newsPosts          NewsPost[]
-  postComments       PostComment[]
-  postLikes          PostLike[]
+  distributed_coupons Coupon[]      @relation("DistributorCoupons")
+  received_coupons    Coupon[]      @relation("ClientCoupons")
+  learn_posts         LearnPost[]
+  news_posts          NewsPost[]
+  post_comments       PostComment[]
+  post_likes          PostLike[]
 
-  userInfo UserInfo?
-  address  Address?
+  user_info UserInfo?
+  address   Address?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  created_by String?
+
+  payments            Payment[] @relation("Payments")
+  registered_payments Payment[] @relation("RegisteredPayments")
 }
 
 model UserInfo {
-  id              String   @id @default(uuid())
-  name            String
-  second_name     String
-  first_lastName  String
-  second_lastName String
-  phone           String
-  birthdate       DateTime
-  score           Int
-  rfc             String
-  curp            String
-  gender          Gender
+  id               String   @id @default(uuid())
+  name             String
+  second_name      String
+  first_last_name  String
+  second_last_name String
+  phone            String
+  birthdate        DateTime
+  score            Int
+  rfc              String
+  curp             String
+  gender           Gender
 
-  user_id   String   @unique
-  user      User     @relation(fields: [user_id], references: [id])
-  address   Address? @relation(fields: [addressId], references: [id])
-  addressId String?
+  user_id    String   @unique
+  user       User     @relation(fields: [user_id], references: [id])
+  address    Address? @relation(fields: [address_id], references: [id])
+  address_id String?
+}
+
+model Store {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  phone       String
+  email       String?
+  image       String
+  status      Status    @default(ACTIVE)
+  addresses   Address[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model Address {
@@ -54,26 +76,38 @@ model Address {
   state        String
   zip_code     String
 
-  user_id   String     @unique
-  user      User       @relation(fields: [user_id], references: [id])
-  userInfos UserInfo[]
+  user_id   String?    @unique
+  user      User?      @relation(fields: [user_id], references: [id])
+  user_info UserInfo[]
+
+  store_id String?
+  store    Store?  @relation(fields: [store_id], references: [id])
 }
 
 // COUPON
 model Coupon {
   id String @id @default(uuid())
 
-  code   String @unique
-  amount Float
+  code        String    @unique
+  amount      Float
+  used_amount Float
+  is_redeemed Boolean   @default(false)
+  redeemed_at DateTime?
+
+  created_at    DateTime @default(now())
+  duration      Int
+  expires_at    DateTime
+  months_to_pay Int
 
   coupon_type_id String
   coupon_type    CouponType @relation(fields: [coupon_type_id], references: [id])
 
-  distributorId String
-  distributor   User   @relation("DistributorCoupons", fields: [distributorId], references: [id])
+  distributor_id String
+  distributor    User   @relation("DistributorCoupons", fields: [distributor_id], references: [id])
 
-  clientId String
-  client   User   @relation("ClientCoupons", fields: [clientId], references: [id])
+  client_id String
+  client    User      @relation("ClientCoupons", fields: [client_id], references: [id])
+  Payment   Payment[]
 }
 
 model CouponType {
@@ -82,13 +116,31 @@ model CouponType {
   coupons Coupon[]
 }
 
+model Payment {
+  id String @id @default(uuid())
+
+  amount           Float
+  description      String
+  paid_at          DateTime
+  last_date_to_pay DateTime
+
+  user_id String
+  user    User   @relation("Payments", fields: [user_id], references: [id])
+
+  coupon_id String
+  coupon    Coupon @relation(fields: [coupon_id], references: [id])
+
+  registered_by String
+  registeredBy  User   @relation("RegisteredPayments", fields: [registered_by], references: [id])
+}
+
 model LearnPost {
   id String @id @default(uuid())
 
   title       String
   description String
   video_url   String
-  created_at  DateTime
+  created_at  DateTime @default(now())
 
   user_id String
   user    User   @relation(fields: [user_id], references: [id])
@@ -101,20 +153,20 @@ model NewsPost {
   title      String
   content    String
   image      String
-  created_at DateTime
+  created_at DateTime @default(now())
   likes      Int
 
-  user_id      String
-  user         User          @relation(fields: [user_id], references: [id])
-  postComments PostComment[]
-  postLikes    PostLike[]
+  user_id       String
+  user          User          @relation(fields: [user_id], references: [id])
+  post_comments PostComment[]
+  post_likes    PostLike[]
 }
 
 model PostComment {
   id String @id @default(uuid())
 
   content    String
-  created_at DateTime
+  created_at DateTime @default(now())
 
   user_id String
   user    User   @relation(fields: [user_id], references: [id])
@@ -126,7 +178,7 @@ model PostComment {
 model PostLike {
   id String @id @default(uuid())
 
-  liked_at DateTime
+  liked_at DateTime @default(now())
 
   user_id String
   user    User   @relation(fields: [user_id], references: [id])
@@ -138,12 +190,17 @@ model PostLike {
 enum Role {
   CLIENT
   DISTRIBUTOR
+  STORE
   EDITOR
   ADMIN
 }
 
 enum Gender {
-  M
-  F
-  O
+  MALE
+  FEMALE
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
 }
