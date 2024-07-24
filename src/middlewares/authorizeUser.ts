@@ -8,8 +8,8 @@ const authorizeUser = (allowedRoles: string[]) => {
 
         if (!req.user) return res.status(401).json({
             ok: false,
-            message: "User doesn't exists in request"
-        })
+            message: "User doesn't exist in request"
+        });
 
         const userRole = req.user.role;
         const userId = req.user.id;
@@ -24,25 +24,40 @@ const authorizeUser = (allowedRoles: string[]) => {
                 return next();
             }
 
-            if (userRole === 'EDITOR' || userRole === 'DISTRIBUTOR') {
+            if (userRole === 'EDITOR') {
+                if (userId === id) {
+                    return next();
+                } else {
+                    return res.status(403).json({ ok: false, message: 'Not authorized to perform this action.' });
+                }
+            }
+
+            if (userRole === 'DISTRIBUTOR') {
                 if (userId === id) {
                     return next();
                 }
-                if (userRole === 'DISTRIBUTOR') {
-                    const client = await prisma.user.findUnique({
-                        where: { id },
-                        include: {
-                            received_coupons: {
-                                where: { distributor_id: userId }
-                            }
-                        }
-                    });
 
-                    if (client && client.received_coupons.length > 0) {
-                        return next();
-                    }
+                // Check if this is a user creation endpoint
+                if (req.method === 'POST' && req.path === '/users') {
+                    // Distributors are allowed to create new users
+                    return next();
                 }
-                return res.status(403).json({ ok: false, message: 'Not authorized to perform this action.' });
+
+                // For other actions, check received coupons
+                const client = await prisma.user.findUnique({
+                    where: { id },
+                    include: {
+                        received_coupons: {
+                            where: { distributor_id: userId }
+                        }
+                    }
+                });
+
+                if (client && client.received_coupons.length > 0) {
+                    return next();
+                } else {
+                    return res.status(403).json({ ok: false, message: 'Not authorized to perform this action.' });
+                }
             }
 
             return res.status(403).json({ ok: false, message: 'Access denied.' });

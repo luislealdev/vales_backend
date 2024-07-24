@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-    host: "mail.rodolfocastaneda.com",
+    host: "smtp.zoho.com",
     port: 465,
     secure: true, // Set to true if using TLS
     auth: {
@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 export default async function sendEmail(to: string, subject: string, html: string) {
     try {
         await transporter.sendMail({
-            from: '"vales_app" <luisrrleal@gmail.com>',
+            from: '"Más Óptica" <notificaciones@creativa2020.com>',
             to,
             subject,
             html,

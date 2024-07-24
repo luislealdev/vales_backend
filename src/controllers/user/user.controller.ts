@@ -5,6 +5,7 @@ import { Gender } from '@prisma/client';
 import { validateEmail } from '../../utils/validateEmail';
 import { generateRandomPassword } from '../../utils/generateRandomPassword';
 import bcrypt from 'bcrypt';
+import sendEmail from '../../helpers/send-email';
 
 class UserController {
     private userService: UserService;
@@ -80,10 +81,23 @@ class UserController {
         }
 
         const password = generateRandomPassword();
-        // TODO: SEND PASSWORD TO EMAIL
+
+        // Email content for user
+        const userEmailHtml = `
+        <h2>¡Bienvenido a Más Óptica, ${req.body.name} ${req.body.first_last_name}!</h2>
+        <p>Nos complace darte la bienvenida a nuestra plataforma. Aquí tienes los detalles para acceder a tu cuenta:</p>
+        <ul>
+          <li><b>Email:</b> ${req.body.email}</li>
+          <li><b>Contraseña:</b> ${password}</li>
+        </ul>
+        <p>Por favor, accede a tu cuenta y cambia tu contraseña lo antes posible.</p>
+        <p>¡Gracias por unirte a nosotros!</p>
+      `;
+
+        await sendEmail(req.body.email, 'Bienvenido a Más Óptica', userEmailHtml);
+
         // Hash the password
         const hashedPassword = bcrypt.hashSync(password, 10);
-
 
         // Extract user_info data from request body 
         const userInfoData = {
@@ -117,9 +131,6 @@ class UserController {
             user_info: userInfoData, // Add user_info data
             address: userAddress,
         };
-
-        console.log(userObject);
-        
 
         // Attempt to create the user using the userService
         try {
