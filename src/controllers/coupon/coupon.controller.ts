@@ -81,30 +81,31 @@ class CouponController {
 
     public getAllCoupons = async (req: Request, res: Response): Promise<Response> => {
         try {
-            const coupons = await this.couponService.getAllCoupons();
+            const coupons = await this.couponService.getAllCoupons(req.user!.id);
             return res.json({ ok: true, coupons });
         } catch (error) {
             return res.status(500).json({ ok: false, message: 'Error fetching coupons', error });
         }
     }
 
-    public getCouponsByDistributorId = async (req: Request, res: Response): Promise<Response> => {
-        try {
-            const coupons = await this.couponService.getCouponsByDistributorId(req.user!.id);
-            return res.json({ ok: true, coupons });
-        } catch (error) {
-            return res.status(500).json({ ok: false, message: 'Error fetching distributor coupons', error });
-        }
-    }
+    // public getCouponsByDistributorId = async (req: Request, res: Response): Promise<Response> => {        
+        
+    //     try {
+    //         const coupons = await this.couponService.getCouponsByDistributorId(req.user!.id);
+    //         return res.json({ ok: true, coupons });
+    //     } catch (error) {
+    //         return res.status(500).json({ ok: false, message: 'Error fetching distributor coupons', error });
+    //     }
+    // }
 
-    public getCouponsByClientId = async (req: Request, res: Response): Promise<Response> => {
-        try {
-            const coupons = await this.couponService.getCouponsByClientId(req.user!.id);
-            return res.json({ ok: true, coupons });
-        } catch (error) {
-            return res.status(500).json({ ok: false, message: 'Error fetching client coupons', error });
-        }
-    }
+    // public getCouponsByClientId = async (req: Request, res: Response): Promise<Response> => {
+    //     try {
+    //         const coupons = await this.couponService.getCouponsByClientId(req.user!.id);
+    //         return res.json({ ok: true, coupons });
+    //     } catch (error) {
+    //         return res.status(500).json({ ok: false, message: 'Error fetching client coupons', error });
+    //     }
+    // }
 }
 
 export default CouponController;

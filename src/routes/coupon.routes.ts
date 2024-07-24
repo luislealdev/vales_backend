@@ -12,9 +12,9 @@ router.post('/coupons', authorizeCoupon(['DISTRIBUTOR']), couponController.creat
 router.get('/coupons/:id', authorizeCoupon(['ADMIN', 'DISTRIBUTOR', 'CLIENT']), couponController.getCouponById);
 router.put('/coupons/:id', authorizeCoupon(['ADMIN', 'DISTRIBUTOR']), couponController.updateCoupon);
 router.delete('/coupons/:id', authorizeCoupon(['ADMIN', 'DISTRIBUTOR']), couponController.deleteCoupon);
-router.get('/coupons', authorizeCoupon(['ADMIN']), couponController.getAllCoupons);
-router.get('/coupons/distributor', authorizeCoupon(['DISTRIBUTOR']), couponController.getCouponsByDistributorId);
-router.get('/coupons/client', authorizeCoupon(['CLIENT']), couponController.getCouponsByClientId);
+router.get('/coupons', couponController.getAllCoupons);
+// router.get('/coupons/distributor', authorizeCoupon(['DISTRIBUTOR']), couponController.getCouponsByDistributorId);
+// router.get('/coupons/client', authorizeCoupon(['CLIENT']), couponController.getCouponsByClientId);
 
 
 export default router;

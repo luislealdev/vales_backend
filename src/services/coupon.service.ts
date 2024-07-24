@@ -20,9 +20,17 @@ class CouponService {
         return await prisma.coupon.delete({ where: { id } });
     }
 
-    public async getAllCoupons() {
-        return await prisma.coupon.findMany();
+    public async getAllCoupons(id: string) {
+        return await prisma.coupon.findMany({
+            where: {
+                OR: [
+                    { distributor_id: id },
+                    { client_id: id }
+                ]
+            }
+        });
     }
+
 
     public async getCouponsByDistributorId(distributorId: string) {
         return await prisma.coupon.findMany({ where: { distributor_id: distributorId } });
