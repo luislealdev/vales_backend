@@ -154,7 +154,7 @@ model NewsPost {
   content    String
   image      String
   created_at DateTime @default(now())
-  likes      Int
+  likes      Int      @default(0)
 
   user_id       String
   user          User          @relation(fields: [user_id], references: [id])

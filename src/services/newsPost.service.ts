@@ -1,8 +1,18 @@
+import { NewsPost } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 class NewsPostService {
-    public async createNewsPost(data: any) {
-        return prisma.newsPost.create({ data });
+
+    public async createNewsPost(data: { title: string; content: string; image: string; user_id: string; }): Promise<NewsPost | { ok: boolean, message: string }> {
+        try {
+            return prisma.newsPost.create({ data });
+        } catch (error) {
+            console.log(error);
+            return {
+                ok: false,
+                message: 'Error while creating news post'
+            }
+        }
     }
 
     public async getNewsPostById(id: string) {

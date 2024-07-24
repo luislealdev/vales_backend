@@ -9,8 +9,23 @@ class NewsPostController {
     }
 
     public createNewsPost = async (req: Request, res: Response): Promise<Response> => {
+        const requiredFields = ['title', 'content', 'image'];
+
+        for (const field of requiredFields) {
+            if (!req.body[field]) {
+                return res.status(400).json({ ok: false, message: `Missing required field: ${field}` });
+            }
+        }
+
+        const { title, content, image } = req.body;
+
         try {
-            const newsPost = await this.newsPostService.createNewsPost(req.body);
+            const newsPost = await this.newsPostService.createNewsPost({
+                title,
+                content,
+                image,
+                user_id: req.user!.id
+            });
             return res.json({ ok: true, newsPost });
         } catch (error) {
             return res.status(500).json({ ok: false, message: 'Error creating news post', error });
@@ -58,7 +73,7 @@ class NewsPostController {
 
     public getRecentNewsPosts = async (req: Request, res: Response): Promise<Response> => {
         try {
-            const recentPosts = await this.newsPostService.getRecentPosts();
+            const recentPosts = await this.newsPostService.getRecentNewsPosts();
             return res.json({ ok: true, recentPosts });
         } catch (error) {
             return res.status(500).json({ ok: false, message: 'Error fetching recent news posts' });
