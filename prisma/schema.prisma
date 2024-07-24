@@ -90,17 +90,17 @@ model Coupon {
 
   code        String    @unique
   amount      Float
-  used_amount Float
+  used_amount Float     @default(0)
   is_redeemed Boolean   @default(false)
   redeemed_at DateTime?
 
   created_at    DateTime @default(now())
-  duration      Int
+  // duration      Int
   expires_at    DateTime
   months_to_pay Int
 
-  coupon_type_id String
-  coupon_type    CouponType @relation(fields: [coupon_type_id], references: [id])
+  // coupon_type_id String
+  // coupon_type    CouponType @relation(fields: [coupon_type_id], references: [id])
 
   distributor_id String
   distributor    User   @relation("DistributorCoupons", fields: [distributor_id], references: [id])
@@ -110,11 +110,11 @@ model Coupon {
   Payment   Payment[]
 }
 
-model CouponType {
-  id      String   @id @default(uuid())
-  type    String
-  coupons Coupon[]
-}
+// model CouponType {
+//   id      String   @id @default(uuid())
+//   type    String
+//   coupons Coupon[]
+// }
 
 model Payment {
   id String @id @default(uuid())

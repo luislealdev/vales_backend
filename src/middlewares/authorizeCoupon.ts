@@ -18,9 +18,13 @@ const authorizeCoupon = (allowedRoles: string[]) => {
                 return next();
             }
 
+            if (user.role === 'DISTRIBUTOR' && req.method === 'POST' && req.path === '/coupons') {
+                return next();
+            }
+
             try {
                 const coupon = await prisma.coupon.findUnique({ where: { id: couponId } });
-                
+
                 if (!coupon) {
                     return res.status(404).json({ ok: false, message: 'Coupon not found' });
                 }

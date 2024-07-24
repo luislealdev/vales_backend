@@ -4,7 +4,7 @@ import { Coupon, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 class CouponService {
-    public async createCoupon(data: Coupon) {
+    public async createCoupon(data: any) {
         return await prisma.coupon.create({ data });
     }
 
