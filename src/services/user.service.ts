@@ -7,6 +7,7 @@ class UserService {
     public async createUser(data: {
         email: string;
         password: string;
+        created_by: string;
         user_info: {
             name: string;
             second_name: string;
@@ -34,6 +35,7 @@ class UserService {
                 data: {
                     email: data.email,
                     password: data.password,
+                    created_by: data.created_by,
                     user_info: {
                         create: {
                             ...data.user_info

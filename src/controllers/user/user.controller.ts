@@ -110,13 +110,16 @@ class UserController {
 
         // Create the user object with user_info
         const userObject = {
-            created_by: req.user?.id,
+            created_by: req.user!.id,
             updated_at: new Date(),
             email: req.body.email,
             password: hashedPassword,
             user_info: userInfoData, // Add user_info data
             address: userAddress,
         };
+
+        console.log(userObject);
+        
 
         // Attempt to create the user using the userService
         try {
