@@ -180,6 +180,15 @@ class UserController {
             return res.status(500).json({ ok: false, message: 'Error getting distributors', error });
         }
     }
+
+    public getClients = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const clients = await this.userService.getClients(req.user!.id);
+            return res.json({ ok: true, clients });
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error getting clients', error });
+        }
+    }
 }
 
 export default UserController;

@@ -90,6 +90,14 @@ class UserService {
             }
         });
     }
+
+    public async getClients(id: string): Promise<User[] | null> {
+        return prisma.user.findMany({
+            where: {
+                created_by: id
+            }
+        });
+    }
 }
 
 export default UserService;

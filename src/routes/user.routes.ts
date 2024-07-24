@@ -12,5 +12,6 @@ router.post('/users', authorizeUser(['ADMIN', 'DISTRIBUTOR']), userController.cr
 router.get('/users/:id', userController.getUserById);
 router.put('/users/:id', authorizeUser(['ADMIN', 'WRITER', 'DISTRIBUTOR']), userController.updateUser);
 router.delete('/users/:id', authorizeUser(['ADMIN', 'WRITER', 'DISTRIBUTOR']), userController.deleteUser);
+router.get('/clients', authorizeUser(['DISTRIBUTOR']), userController.getClients);
 
 export default router;

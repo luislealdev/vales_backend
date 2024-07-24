@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma";
 
 class LearnPostService {
-    public async createLearnPost(data: any) {
+    public async createLearnPost(data: { title: string; description: string; video_url: string; user_id: string; }) {
         return prisma.learnPost.create({ data });
     }
 

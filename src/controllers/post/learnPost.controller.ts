@@ -9,8 +9,24 @@ class LearnPostController {
     }
 
     public createLearnPost = async (req: Request, res: Response): Promise<Response> => {
+
+        const requiredFields = ['title', 'description', 'video_url'];
+
+        for (const field of requiredFields) {
+            if (!req.body[field]) {
+                return res.status(400).json({ ok: false, message: `Missing required field: ${field}` });
+            }
+        }
+
+        const learnPostInfo = {
+            title: req.body.title,
+            description: req.body.description,
+            video_url: req.body.video_url,
+            user_id: req.user!.id,
+        }
+
         try {
-            const learnPost = await this.learnPostService.createLearnPost(req.body);
+            const learnPost = await this.learnPostService.createLearnPost(learnPostInfo);
             return res.json({ ok: true, learnPost });
         } catch (error) {
             return res.status(500).json({ ok: false, message: 'Error creating learn post', error });

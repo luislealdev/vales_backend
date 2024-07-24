@@ -5,6 +5,7 @@ import userRoutes from './routes/user.routes';
 import couponRoutes from './routes/coupon.routes';
 import authRoutes from './routes/auth.routes';
 import newsRoutes from './routes/newsPost.routes';
+import learnPostsRoutes from './routes/learnPost.routes';
 import authenticate from './middlewares/authorize';
 
 const app = express();
@@ -22,6 +23,8 @@ app.use(authenticate);
 app.use(userRoutes);
 app.use(newsRoutes);
 app.use(couponRoutes);
+app.use(learnPostsRoutes);
+
 
 app.listen(port, () => {
     console.log(`Servidor corriendo en puerto ${port}`);

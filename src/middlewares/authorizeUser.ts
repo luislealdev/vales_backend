@@ -32,6 +32,10 @@ const authorizeUser = (allowedRoles: string[]) => {
                 }
             }
 
+            if (userRole === 'DISTRIBUTOR' && req.method === 'GET' && req.path === '/clients') {
+                return next();
+            }
+
             if (userRole === 'DISTRIBUTOR') {
                 if (userId === id) {
                     return next();
