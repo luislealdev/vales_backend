@@ -50,10 +50,16 @@ class AuthService {
             throw { status: 403, message: 'Cuenta desactivada. Por favor, contacte al administrador.' };
         }
 
+
+        const newToken = jwt.sign({ user_id: user.id, role: user.role, is_active: user.is_active }, process.env.JWT_SECRET || 'secret', {
+            expiresIn: '7d'
+        });
+
         return {
             ok: true,
             isActive: user.is_active,
-            role: user.role
+            role: user.role,
+            token: newToken
         };
     }
 }
