@@ -20,6 +20,11 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
         if (!user) {
             return res.status(401).json({ ok: false, message: 'Invalid token.' });
         }
+
+        if (!user.is_active) {
+            return res.status(401).json({ ok: false, message: 'User is not active.' });
+        }
+
         req.user = user;
         next();
     } catch (err) {
