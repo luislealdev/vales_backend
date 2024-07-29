@@ -1,8 +1,8 @@
 // routes/coupon.routes.ts
 import { Router } from 'express';
 import CouponService from '../services/coupon.service';
-import authorizeCoupon from '../middlewares/authorizeCoupon';
 import CouponController from '../controllers/coupon/coupon.controller';
+import authorizeCoupon from '../middlewares/authorizeCoupon';
 
 const router = Router();
 const couponService = new CouponService();
