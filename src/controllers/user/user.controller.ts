@@ -144,10 +144,30 @@ class UserController {
 
     public getUserById = async (req: Request, res: Response): Promise<Response> => {
         try {
-            const user = await this.userService.getUserById(req.params.id);
+            const user = await this.userService.getUserById(req.user!.id);
             if (!user) {
                 return res.status(404).json({ ok: false, message: 'User not found' });
             }
+
+            return res.json({
+                ok: true, user: {
+                    ...user,
+                    password: undefined
+                }
+            });
+
+        } catch (error) {
+            return res.status(500).json({ ok: false, message: 'Error fetching user', error });
+        }
+    }
+
+    public getUserInfoByUserId = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const user = await this.userService.getUserInfoByUserId(req.user!.id);
+            if (!user) {
+                return res.status(404).json({ ok: false, message: 'User not found' });
+            }
+
             return res.json({ ok: true, user });
         } catch (error) {
             return res.status(500).json({ ok: false, message: 'Error fetching user', error });

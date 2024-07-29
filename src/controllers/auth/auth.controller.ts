@@ -31,7 +31,7 @@ class AuthController {
         }
 
         try {
-            const authStatusResponse = await this.authService.checkAuthStatus(token);            
+            const authStatusResponse = await this.authService.checkAuthStatus(token);
             return res.json(authStatusResponse);
         } catch (error: any) {
             return res.status(error.status || 401).json({ ok: false, message: error.message || 'Token no válido' });

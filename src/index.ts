@@ -6,6 +6,7 @@ import couponRoutes from './routes/coupon.routes';
 import authRoutes from './routes/auth.routes';
 import newsRoutes from './routes/newsPost.routes';
 import learnPostsRoutes from './routes/learnPost.routes';
+import addressRoutes from './routes/address.routes';
 import authenticate from './middlewares/authorize';
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(userRoutes);
 app.use(newsRoutes);
 app.use(couponRoutes);
 app.use(learnPostsRoutes);
+app.use(addressRoutes)
 
 
 app.listen(port, () => {

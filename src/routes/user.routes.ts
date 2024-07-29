@@ -9,7 +9,8 @@ const userController = new UserController(userService);
 
 router.get('/users/distributors', authorizeUser(['ADMIN']), userController.getDistributors);
 router.post('/users', authorizeUser(['ADMIN', 'DISTRIBUTOR']), userController.createUser);
-router.get('/users/:id', userController.getUserById);
+// router.get('/users/:id', userController.getUserById);
+router.get('/user-info', userController.getUserInfoByUserId);
 router.put('/users/:id', authorizeUser(['ADMIN', 'WRITER', 'DISTRIBUTOR']), userController.updateUser);
 router.delete('/users/:id', authorizeUser(['ADMIN', 'WRITER', 'DISTRIBUTOR']), userController.deleteUser);
 router.get('/clients', authorizeUser(['DISTRIBUTOR']), userController.getClients);

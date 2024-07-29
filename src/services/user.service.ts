@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User, UserInfo } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -61,7 +61,13 @@ class UserService {
     }
 
     public async getUserById(id: string): Promise<User | null> {
-        return prisma.user.findUnique({ where: { id } });
+        return prisma.user.findUnique({ where: { id }, include: { user_info: true } });
+    }
+
+    public async getUserInfoByUserId(id: string): Promise<UserInfo | null> {
+        return prisma.userInfo.findUnique({
+            where: { user_id: id }
+        });
     }
 
     public async updateUser(id: string, data: Partial<User>): Promise<User> {
